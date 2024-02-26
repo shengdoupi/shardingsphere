@@ -46,6 +46,8 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.subquery
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.AggregationProjectionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ExpressionProjectionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.IntervalExpressionProjection;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.match.GraphMatchExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.match.MatchOptionExpression;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.DataTypeSegment;
 import org.apache.shardingsphere.sql.parser.sql.dialect.segment.mysql.match.MatchAgainstExpression;
 import org.apache.shardingsphere.sql.parser.sql.dialect.segment.oracle.interval.IntervalDayToSecondExpression;
@@ -60,6 +62,7 @@ import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.col
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.column.OuterJoinExpressionAssert;
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.generic.DataTypeAssert;
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.insert.InsertValuesClauseAssert;
+import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.match.GraphMatchAssert;
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.owner.OwnerAssert;
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.projection.ProjectionAssert;
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.statement.dml.impl.SelectStatementAssert;
@@ -90,6 +93,8 @@ import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.s
 import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.expr.simple.ExpectedSubquery;
 import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.function.ExpectedFunction;
 import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.json.ExpectedJsonNullClauseSegment;
+import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.match.ExpectedGraphMatchExpression;
+import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.match.ExpectedMatchOption;
 import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.xmlquery.ExpectedXmlQueryAndExistsFunctionSegment;
 import org.apache.shardingsphere.test.it.sql.parser.internal.cases.sql.type.SQLCaseType;
 
@@ -621,6 +626,28 @@ public final class ExpressionAssert {
     }
     
     /**
+     * Assert graph match expression.
+     *
+     * @param assertContext assert context
+     * @param actual actual graph match expression
+     * @param expected expected graph match expression
+     */
+    private static void assertGraphMatchExpression(final SQLCaseAssertContext assertContext, final GraphMatchExpression actual, final ExpectedGraphMatchExpression expected) {
+        if (null == expected) {
+            assertNull(actual, assertContext.getText("Actual graph match expression should not exist."));
+        } else {
+            assertNotNull(actual, assertContext.getText("Actual graph match expression should exist."));
+            Iterator<ExpectedMatchOption> expectedIterator = expected.getMatchOptions().iterator();
+            Iterator<MatchOptionExpression> actualIterator = actual.getItems().iterator();
+            while (expectedIterator.hasNext()) {
+                GraphMatchAssert.assertMatchOption(assertContext, actualIterator.next(), expectedIterator.next());
+            }
+            SQLSegmentAssert.assertIs(assertContext, actual, expected);
+            assertThat(assertContext.getText("Graph match expression assertion error."), actual.getText(), is(expected.getText()));
+        }
+    }
+    
+    /**
      * Assert expression by actual expression segment class type.
      *
      * @param assertContext assert context
@@ -695,6 +722,8 @@ public final class ExpressionAssert {
             assertKeyValueSegment(assertContext, (KeyValueSegment) actual, expected.getKeyValueSegment());
         } else if (actual instanceof JsonNullClauseSegment) {
             assertJsonNullClauseSegment(assertContext, (JsonNullClauseSegment) actual, expected.getJsonNullClauseSegment());
+        } else if (actual instanceof GraphMatchExpression) {
+            assertGraphMatchExpression(assertContext, (GraphMatchExpression) actual, expected.getGraphMatchExpression());
         } else {
             throw new UnsupportedOperationException(String.format("Unsupported expression: %s", actual.getClass().getName()));
         }

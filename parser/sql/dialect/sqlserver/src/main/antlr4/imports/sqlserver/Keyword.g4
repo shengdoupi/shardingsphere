@@ -803,3 +803,23 @@ WITHIN
 OPENDATASOURCE
     : O P E N D A T A S O U R C E
     ;
+
+STRING_AGG
+    : S T R I N G UL_ A G G
+    ;
+
+GRAPH
+    : G R A P H
+    ;
+
+SHORTEST_PATH
+    : S H O R T E S T UL_ P A T H
+    ;
+
+LAST_NODE
+    : L A S T UL_ N O D E
+    ;
+
+MATCH
+    : M A T C H
+    ;

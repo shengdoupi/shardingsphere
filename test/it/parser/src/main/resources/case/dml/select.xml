@@ -8723,4 +8723,456 @@
             </expr>
         </where>
     </select>
+
+    <select sql-case-id="select_with_shortest_path_all">
+        <projections start-index="7" stop-index="101">
+            <column-projection name="name" start-index="7" stop-index="32" alias="PersonName">
+                <owner name="Person1" start-index="7" stop-index="13"/>
+            </column-projection>
+            <expression-projection text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" start-index="35" stop-index="101" alias="Friends">
+                <function text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" function-name="STRING_AGG" start-index="35" stop-index="103">
+                    <parameter>
+                        <column name="name" start-index="55" stop-index="59">
+                            <owner name="Person2" start-index="47" stop-index="54"/>
+                        </column>
+                        <literal-expression value="->" start-index="183" stop-index="185"/>
+                    </parameter>
+                </function>
+            </expression-projection>
+        </projections>
+        <from start-index="108" stop-index="193">
+            <join-table join-type="COMMA">
+                <left>
+                    <join-table join-type="COMMA">
+                        <left>
+                            <simple-table name="Person" start-index="108" stop-index="124" alias="Person1"/>
+                        </left>
+                        <right>
+                            <simple-table name="friendOf" start-index="127" stop-index="149" alias="fo"/>
+                        </right>
+                    </join-table>
+                </left>
+                <right>
+                    <simple-table name="Person" start-index="152" stop-index="178" alias="Person2"/>
+                </right>
+            </join-table>
+        </from>
+        <where start-index="180" stop-index="258">
+            <expr>
+                <binary-operation-expression start-index="186" stop-index="258">
+                    <operator>AND</operator>
+                    <left>
+                        <graph-match-expression text="MATCH(SHORTEST_PATH(Person1(-(fo)->Person2)+))" start-index="186" stop-index="231">
+                            <match-options start-index="192" stop-index="230">
+                                <shortest-path-option text="SHORTEST_PATH(Person1(-(fo)->Person2)+)" start-index="192" stop-index="230">
+                                    <begin-node start-index="206" stop-index="212" table-name="Person1"/>
+                                    <end-node start-index="221" stop-index="227" table-name="Person2"/>
+                                    <edge text="-(fo)->" start-index="214" stop-index="220" table-name="fo" edge-direction="RIGHT"/>
+                                </shortest-path-option>
+                            </match-options>
+                        </graph-match-expression>
+                    </left>
+                    <right>
+                        <binary-operation-expression start-index="237" stop-index="258">
+                            <operator>=</operator>
+                            <left>
+                                <column name="name" start-index="237" stop-index="248">
+                                    <owner name="Person1" start-index="237" stop-index="243"/>
+                                </column>
+                            </left>
+                            <right>
+                                <literal-expression value="Jacob" start-index="252" stop-index="258"/>
+                            </right>
+                        </binary-operation-expression>
+                    </right>
+                </binary-operation-expression>
+            </expr>
+        </where>
+    </select>
+
+    <select sql-case-id="select_with_shortest_path_from_special_hops_away">
+        <projections start-index="7" stop-index="101">
+            <column-projection name="name" start-index="7" stop-index="32" alias="PersonName">
+                <owner name="Person1" start-index="7" stop-index="13"/>
+            </column-projection>
+            <expression-projection text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" start-index="35" stop-index="101" alias="Friends">
+                <function text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" function-name="STRING_AGG" start-index="35" stop-index="103">
+                    <parameter>
+                        <column name="name" start-index="55" stop-index="59">
+                            <owner name="Person2" start-index="47" stop-index="54"/>
+                        </column>
+                        <literal-expression value="->" start-index="183" stop-index="185"/>
+                    </parameter>
+                </function>
+            </expression-projection>
+        </projections>
+        <from start-index="108" stop-index="193">
+            <join-table join-type="COMMA">
+                <left>
+                    <join-table join-type="COMMA">
+                        <left>
+                            <simple-table name="Person" start-index="108" stop-index="124" alias="Person1"/>
+                        </left>
+                        <right>
+                            <simple-table name="friendOf" start-index="127" stop-index="149" alias="fo"/>
+                        </right>
+                    </join-table>
+                </left>
+                <right>
+                    <simple-table name="Person" start-index="152" stop-index="178" alias="Person2"/>
+                </right>
+            </join-table>
+        </from>
+        <where start-index="180" stop-index="262">
+            <expr>
+                <binary-operation-expression start-index="186" stop-index="262">
+                    <operator>AND</operator>
+                    <left>
+                        <graph-match-expression text="MATCH(SHORTEST_PATH(Person1(-(fo)->Person2){1,3}))" start-index="186" stop-index="235">
+                            <match-options start-index="192" stop-index="234">
+                                <shortest-path-option text="SHORTEST_PATH(Person1(-(fo)->Person2){1,3})" start-index="192" stop-index="234">
+                                    <begin-node start-index="206" stop-index="212" table-name="Person1"/>
+                                    <end-node start-index="221" stop-index="227" table-name="Person2"/>
+                                    <edge text="-(fo)->" start-index="214" stop-index="220" table-name="fo" edge-direction="RIGHT"/>
+                                </shortest-path-option>
+                            </match-options>
+                        </graph-match-expression>
+                    </left>
+                    <right>
+                        <binary-operation-expression start-index="241" stop-index="262">
+                            <operator>=</operator>
+                            <left>
+                                <column name="name" start-index="241" stop-index="252">
+                                    <owner name="Person1" start-index="241" stop-index="247"/>
+                                </column>
+                            </left>
+                            <right>
+                                <literal-expression value="Jacob" start-index="256" stop-index="262"/>
+                            </right>
+                        </binary-operation-expression>
+                    </right>
+                </binary-operation-expression>
+            </expr>
+        </where>
+    </select>
+
+    <select sql-case-id="select_with_shortest_path_for_calculating_hops">
+        <projections start-index="7" stop-index="33">
+            <column-projection name="PersonName" start-index="7" stop-index="16"/>
+            <column-projection name="Friends" start-index="19" stop-index="25"/>
+            <column-projection name="levels" start-index="28" stop-index="33"/>
+        </projections>
+        <from start-index="35" stop-index="429">
+            <subquery-table alias="Q">
+                <subquery start-index="42" stop-index="422">
+                    <select>
+                        <projections start-index="49" stop-index="264">
+                            <column-projection name="name" start-index="49" stop-index="74" alias="PersonName">
+                                <owner name="Person1" start-index="49" stop-index="55"/>
+                            </column-projection>
+                            <expression-projection text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" start-index="77" stop-index="143" alias="Friends">
+                                <function text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" function-name="STRING_AGG" start-index="77" stop-index="132">
+                                    <parameter>
+                                        <column name="name" start-index="88" stop-index="99">
+                                            <owner name="Person2" start-index="88" stop-index="94"/>
+                                        </column>
+                                        <literal-expression value="->" start-index="102" stop-index="105"/>
+                                    </parameter>
+                                </function>
+                            </expression-projection>
+                            <expression-projection text="LAST_VALUE(Person2.name) WITHIN GROUP (GRAPH PATH)" start-index="146" stop-index="207" alias="LastNode">
+                                <function text="LAST_VALUE(Person2.name) WITHIN GROUP (GRAPH PATH)" function-name="LAST_VALUE" start-index="146" stop-index="195">
+                                    <parameter>
+                                        <column name="name" start-index="157" stop-index="168">
+                                            <owner name="Person2" start-index="157" stop-index="163"/>
+                                        </column>
+                                    </parameter>
+                                </function>
+                            </expression-projection>
+                            <expression-projection text="COUNT(Person2.name) WITHIN GROUP (GRAPH PATH)" start-index="210" stop-index="264" alias="levels">
+                                <function text="COUNT(Person2.name) WITHIN GROUP (GRAPH PATH)" function-name="COUNT" start-index="210" stop-index="254">
+                                    <parameter>
+                                        <column name="name" start-index="216" stop-index="227">
+                                            <owner name="Person2" start-index="216" stop-index="222"/>
+                                        </column>
+                                    </parameter>
+                                </function>
+                            </expression-projection>
+                        </projections>
+                        <from>
+                            <join-table join-type="COMMA">
+                                <left>
+                                    <join-table join-type="COMMA">
+                                        <left>
+                                            <simple-table name="Person" start-index="271" stop-index="287" alias="Person1"/>
+                                        </left>
+                                        <right>
+                                            <simple-table name="friendOf" start-index="290" stop-index="312" alias="fo"/>
+                                        </right>
+                                    </join-table>
+                                </left>
+                                <right>
+                                    <simple-table name="Person" start-index="315" stop-index="341" alias="Person2"/>
+                                </right>
+                            </join-table>
+                        </from>
+                        <where start-index="343" stop-index="421">
+                            <expr>
+                                <binary-operation-expression start-index="349" stop-index="421">
+                                    <operator>AND</operator>
+                                    <left>
+                                        <graph-match-expression text="MATCH(SHORTEST_PATH(Person1(-(fo)->Person2)+))" start-index="349" stop-index="394">
+                                            <match-options start-index="355" stop-index="393">
+                                                <shortest-path-option text="SHORTEST_PATH(Person1(-(fo)->Person2)+)" start-index="355" stop-index="393">
+                                                    <begin-node start-index="369" stop-index="375" table-name="Person1"/>
+                                                    <end-node start-index="384" stop-index="390" table-name="Person2"/>
+                                                    <edge text="-(fo)->" start-index="377" stop-index="383" table-name="fo" edge-direction="RIGHT"/>
+                                                </shortest-path-option>
+                                            </match-options>
+                                        </graph-match-expression>
+                                    </left>
+                                    <right>
+                                        <binary-operation-expression start-index="400" stop-index="421">
+                                            <operator>=</operator>
+                                            <left>
+                                                <column name="name" start-index="400" stop-index="411">
+                                                    <owner name="Person1" start-index="400" stop-index="406"/>
+                                                </column>
+                                            </left>
+                                            <right>
+                                                <literal-expression value="Jacob" start-index="415" stop-index="421"/>
+                                            </right>
+                                        </binary-operation-expression>
+                                    </right>
+                                </binary-operation-expression>
+                            </expr>
+                        </where>
+                    </select>
+                </subquery>
+            </subquery-table>
+        </from>
+        <where start-index="430" stop-index="455">
+            <expr>
+                <binary-operation-expression start-index="436" stop-index="455">
+                    <operator>=</operator>
+                    <left>
+                        <column name="LastNode" start-index="436" stop-index="445">
+                            <owner name="Q" start-index="436" stop-index="436"/>
+                        </column>
+                    </left>
+                    <right>
+                        <literal-expression value="Alice" start-index="449" stop-index="455"/>
+                    </right>
+                </binary-operation-expression>
+            </expr>
+        </where>
+    </select>
+
+    <select sql-case-id="select_with_shortest_path_from_special_hops_away_2">
+        <projections start-index="7" stop-index="25">
+            <column-projection name="PersonName" start-index="7" stop-index="16"/>
+            <column-projection name="Friends" start-index="19" stop-index="25"/>
+        </projections>
+        <from start-index="28" stop-index="357">
+            <subquery-table alias="Q">
+                <subquery start-index="34" stop-index="353">
+                    <select>
+                        <projections start-index="41" stop-index="192">
+                            <column-projection name="name" start-index="41" stop-index="66" alias="PersonName">
+                                <owner name="Person1" start-index="41" stop-index="47"/>
+                            </column-projection>
+                            <expression-projection text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" start-index="69" stop-index="135" alias="Friends">
+                                <function text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" function-name="STRING_AGG" start-index="69" stop-index="124">
+                                    <parameter>
+                                        <column name="name" start-index="80" stop-index="91">
+                                            <owner name="Person2" start-index="80" stop-index="86"/>
+                                        </column>
+                                        <literal-expression value="->" start-index="94" stop-index="97"/>
+                                    </parameter>
+                                </function>
+                            </expression-projection>
+                            <expression-projection text="COUNT(Person2.name) WITHIN GROUP (GRAPH PATH)" start-index="138" stop-index="192" alias="levels">
+                                <function text="COUNT(Person2.name) WITHIN GROUP (GRAPH PATH)" function-name="COUNT" start-index="138" stop-index="182">
+                                    <parameter>
+                                        <column name="name" start-index="144" stop-index="155">
+                                            <owner name="Person2" start-index="144" stop-index="150"/>
+                                        </column>
+                                    </parameter>
+                                </function>
+                            </expression-projection>
+                        </projections>
+                        <from>
+                            <join-table join-type="COMMA">
+                                <left>
+                                    <join-table join-type="COMMA">
+                                        <left>
+                                            <simple-table name="Person" start-index="199" stop-index="215" alias="Person1"/>
+                                        </left>
+                                        <right>
+                                            <simple-table name="friendOf" start-index="218" stop-index="240" alias="fo"/>
+                                        </right>
+                                    </join-table>
+                                </left>
+                                <right>
+                                    <simple-table name="Person" start-index="243" stop-index="269" alias="Person2"/>
+                                </right>
+                            </join-table>
+                        </from>
+                        <where start-index="271" stop-index="353">
+                            <expr>
+                                <binary-operation-expression start-index="277" stop-index="353">
+                                    <operator>AND</operator>
+                                    <left>
+                                        <graph-match-expression text="MATCH(SHORTEST_PATH(Person1(-(fo)->Person2){1,3}))" start-index="277" stop-index="326">
+                                            <match-options start-index="283" stop-index="325">
+                                                <shortest-path-option text="SHORTEST_PATH(Person1(-(fo)->Person2){1,3})" start-index="283" stop-index="325">
+                                                    <begin-node start-index="297" stop-index="303" table-name="Person1"/>
+                                                    <end-node start-index="312" stop-index="318" table-name="Person2"/>
+                                                    <edge text="-(fo)->" start-index="305" stop-index="311" table-name="fo" edge-direction="RIGHT"/>
+                                                </shortest-path-option>
+                                            </match-options>
+                                        </graph-match-expression>
+                                    </left>
+                                    <right>
+                                        <binary-operation-expression start-index="332" stop-index="353">
+                                            <operator>=</operator>
+                                            <left>
+                                                <column name="name" start-index="332" stop-index="343">
+                                                    <owner name="Person1" start-index="332" stop-index="338"/>
+                                                </column>
+                                            </left>
+                                            <right>
+                                                <literal-expression value="Jacob" start-index="347" stop-index="353"/>
+                                            </right>
+                                        </binary-operation-expression>
+                                    </right>
+                                </binary-operation-expression>
+                            </expr>
+                        </where>
+                    </select>
+                </subquery>
+            </subquery-table>
+        </from>
+        <where start-index="359" stop-index="376">
+            <expr>
+                <binary-operation-expression start-index="365" stop-index="376">
+                    <operator>=</operator>
+                    <left>
+                        <column name="levels" start-index="365" stop-index="372">
+                            <owner name="Q" start-index="365" stop-index="365"/>
+                        </column>
+                    </left>
+                    <right>
+                        <literal-expression value="2" start-index="376" stop-index="376"/>
+                    </right>
+                </binary-operation-expression>
+            </expr>
+        </where>
+    </select>
+
+    <select sql-case-id="select_with_shortest_path_and_last_node">
+        <projections start-index="7" stop-index="118">
+            <column-projection name="name" start-index="7" stop-index="32" alias="PersonName">
+                <owner name="Person1" start-index="7" stop-index="13"/>
+            </column-projection>
+            <expression-projection text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" start-index="35" stop-index="101" alias="Friends">
+                <function text="STRING_AGG(Person2.name, '->') WITHIN GROUP (GRAPH PATH)" function-name="STRING_AGG" start-index="35" stop-index="103">
+                    <parameter>
+                        <column name="name" start-index="55" stop-index="59">
+                            <owner name="Person2" start-index="47" stop-index="54"/>
+                        </column>
+                        <literal-expression value="->" start-index="183" stop-index="185"/>
+                    </parameter>
+                </function>
+            </expression-projection>
+            <column-projection name="name" start-index="104" stop-index="118">
+                <owner name="Restaurant" start-index="104" stop-index="113"/>
+            </column-projection>
+        </projections>
+        <from start-index="120" stop-index="214">
+            <join-table join-type="COMMA">
+                <left>
+                    <join-table join-type="COMMA">
+                        <left>
+                            <join-table join-type="COMMA">
+                                <left>
+                                    <join-table join-type="COMMA">
+                                        <left>
+                                            <simple-table name="Person" start-index="125" stop-index="141" alias="Person1"/>
+                                        </left>
+                                        <right>
+                                            <simple-table name="friendOf" start-index="144" stop-index="166" alias="fo"/>
+                                        </right>
+                                    </join-table>
+                                </left>
+                                <right>
+                                    <simple-table name="Person" start-index="169" stop-index="195" alias="Person2"/>
+                                </right>
+                            </join-table>
+                        </left>
+                        <right>
+                            <simple-table name="likes" start-index="198" stop-index="202"/>
+                        </right>
+                    </join-table>
+                </left>
+                <right>
+                    <simple-table name="Restaurant" start-index="205" stop-index="214"/>
+                </right>
+            </join-table>
+        </from>
+        <where start-index="216" stop-index="383">
+            <expr>
+                <binary-operation-expression start-index="222" stop-index="383">
+                    <operator>AND</operator>
+                    <left>
+                        <binary-operation-expression start-index="222" stop-index="342">
+                            <operator>AND</operator>
+                            <left>
+                                <graph-match-expression text="MATCH(SHORTEST_PATH(Person1(-(fo)->Person2){1,3})ANDLAST_NODE(Person2)-(likes)->Restaurant)" start-index="222" stop-index="315">
+                                    <match-options>
+                                        <shortest-path-option text="SHORTEST_PATH(Person1(-(fo)->Person2){1,3})" start-index="228" stop-index="270">
+                                            <begin-node start-index="242" stop-index="248" table-name="Person1"/>
+                                            <end-node start-index="257" stop-index="263" table-name="Person2"/>
+                                            <edge text="-(fo)->" start-index="250" stop-index="256" table-name="fo" edge-direction="RIGHT"/>
+                                        </shortest-path-option>
+                                        <simple-match-option text="LAST_NODE(Person2)-(likes)->Restaurant" start-index="276" stop-index="313">
+                                            <begin-node start-index="286" stop-index="292" table-name="Person2"/>
+                                            <end-node start-index="304" stop-index="313" table-name="Restaurant"/>
+                                            <edge text="-(likes)->" start-index="294" stop-index="303" table-name="likes" edge-direction="RIGHT"/>
+                                        </simple-match-option>
+                                    </match-options>
+                                </graph-match-expression>
+                            </left>
+                            <right>
+                                <binary-operation-expression start-index="321" stop-index="342">
+                                    <operator>=</operator>
+                                    <left>
+                                        <column name="name" start-index="321" stop-index="332">
+                                            <owner name="Person1" start-index="321" stop-index="327"/>
+                                        </column>
+                                    </left>
+                                    <right>
+                                        <literal-expression value="Jacob" start-index="336" stop-index="342"/>
+                                    </right>
+                                </binary-operation-expression>
+                            </right>
+                        </binary-operation-expression>
+                    </left>
+                    <right>
+                        <binary-operation-expression start-index="348" stop-index="383">
+                            <operator>=</operator>
+                            <left>
+                                <column name="name" start-index="348" stop-index="362">
+                                    <owner name="Restaurant" start-index="348" stop-index="357"/>
+                                </column>
+                            </left>
+                            <right>
+                                <literal-expression value="Ginger and Spice" start-index="366" stop-index="383"/>
+                            </right>
+                        </binary-operation-expression>
+                    </right>
+                </binary-operation-expression>
+            </expr>
+        </where>
+    </select>
 </sql-parser-test-cases>

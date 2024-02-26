@@ -252,6 +252,7 @@ booleanPrimary
     | booleanPrimary comparisonOperator predicate
     | booleanPrimary comparisonOperator (ALL | ANY) subquery
     | predicate
+    | graphMatch
     ;
 
 comparisonOperator
@@ -314,7 +315,7 @@ distinct
     ;
 
 specialFunction
-    : conversionFunction | charFunction | openJsonFunction | jsonFunction | openRowSetFunction | windowFunction | approxFunction | openDatasourceFunction | rowNumberFunction
+    : conversionFunction | charFunction | openJsonFunction | jsonFunction | openRowSetFunction | windowFunction | approxFunction | openDatasourceFunction | rowNumberFunction | graphPathAggregateFunction
     ;
 
 rowNumberFunction
@@ -327,6 +328,39 @@ openDatasourceFunction
 
 approxFunction
     : funcName = (APPROX_PERCENTILE_CONT | APPROX_PERCENTILE_DISC) LP_ expr RP_ WITHIN GROUP LP_ ORDER BY expr (ASC | DESC)? RP_
+    ;
+
+graphPathAggregateFunction
+    : funcName = (STRING_AGG | LAST_VALUE | SUM | COUNT | AVG | MIN | MAX) LP_ expr (COMMA_ expr)? RP_ WITHIN GROUP LP_ GRAPH PATH RP_
+    ;
+
+graphMatch
+    : MATCH LP_ matchOption (AND? matchOption)*? RP_
+    ;
+
+matchOption
+    : simpleMatchOption | shortestPathOption
+    ;
+
+simpleMatchOption
+    : (LAST_NODE LP_ node RP_ | node) edge (node | LAST_NODE LP_ node RP_)
+    ;
+
+shortestPathOption
+    : SHORTEST_PATH LP_ (LAST_NODE LP_ node RP_ | node LP_ edge node RP_ alPatternQuantifier) RP_
+    | SHORTEST_PATH LP_ (LP_ node edge RP_ alPatternQuantifier LAST_NODE LP_ node RP_ | node) RP_
+    ;
+
+node
+    : tableName
+    ;
+
+edge
+    : (MINUS_ LP_ tableName RP_ RIGHT_ARROW_) | (LEFT_ARROW_ LP_ tableName RP_ MINUS_)
+    ;
+
+alPatternQuantifier
+    : PLUS_ | (LBE_ NUMBER_ COMMA_ NUMBER_ RBE_)
     ;
 
 conversionFunction

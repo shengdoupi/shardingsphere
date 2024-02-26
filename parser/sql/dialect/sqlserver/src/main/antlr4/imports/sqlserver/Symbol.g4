@@ -58,3 +58,5 @@ QUESTION_:           '?';
 AT_:                 '@';
 SEMI_:               ';';
 DOLLAR_:             '$';
+RIGHT_ARROW_:        '->';
+LEFT_ARROW_:         '<-';

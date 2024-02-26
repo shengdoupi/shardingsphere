@@ -55,11 +55,14 @@ import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.Dat
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.DeleteContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.DelimitedIdentifierContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.DuplicateSpecificationContext;
+import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.EdgeContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.ExecContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.ExprContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.FromClauseContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.FunctionCallContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.GroupByClauseContext;
+import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.GraphMatchContext;
+import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.GraphPathAggregateFunctionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.HavingClauseContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.HexadecimalLiteralsContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.IdentifierContext;
@@ -78,8 +81,10 @@ import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.Jso
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.JsonNullClauseContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.JsonObjectFunctionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.LiteralsContext;
+import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.MatchOptionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.MultipleTableNamesContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.MultipleTablesClauseContext;
+import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.NodeContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.NullValueLiteralsContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.NumberLiteralsContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.OpenJsonFunctionContext;
@@ -106,7 +111,9 @@ import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.Scr
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.SelectClauseContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.SelectContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.SetAssignmentsClauseContext;
+import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.ShortestPathOptionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.SimpleExprContext;
+import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.SimpleMatchOptionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.SingleTableClauseContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.SpecialFunctionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.StatisticsOptionContext;
@@ -132,6 +139,7 @@ import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.Wit
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.RowSetFunctionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQLServerStatementParser.OpenQueryFunctionContext;
 import org.apache.shardingsphere.sql.parser.sql.common.enums.AggregationType;
+import org.apache.shardingsphere.sql.parser.sql.common.enums.EdgeDirection;
 import org.apache.shardingsphere.sql.parser.sql.common.enums.JoinType;
 import org.apache.shardingsphere.sql.parser.sql.common.enums.OrderDirection;
 import org.apache.shardingsphere.sql.parser.sql.common.enums.ParameterMarkerType;
@@ -167,6 +175,12 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.Projecti
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ProjectionsSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ShorthandProjectionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.SubqueryProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.match.GraphMatchExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.match.MatchOptionExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.match.ShortestPathOptionExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.match.SimpleMatchOptionExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.match.item.EdgeExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.match.item.NodeSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.GroupBySegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.OrderBySegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.item.ColumnOrderByItemSegment;
@@ -466,7 +480,67 @@ public abstract class SQLServerStatementVisitor extends SQLServerStatementBaseVi
         if (null != ctx.comparisonOperator() || null != ctx.SAFE_EQ_()) {
             return createCompareSegment(ctx);
         }
+        if (null != ctx.graphMatch()) {
+            return visit(ctx.graphMatch());
+        }
         return visit(ctx.predicate());
+    }
+    
+    @Override
+    public final ASTNode visitGraphMatch(final GraphMatchContext ctx) {
+        Collection<MatchOptionExpression> items = new LinkedList<>();
+        int graphSearchOptionStartIndex = ctx.start.getStartIndex();
+        int graphSearchOptionStopIndex = ctx.stop.getStopIndex();
+        for (MatchOptionContext each : ctx.matchOption()) {
+            items.add((MatchOptionExpression) visit(each));
+        }
+        return new GraphMatchExpression(graphSearchOptionStartIndex, graphSearchOptionStopIndex, ctx.getText(), items);
+    }
+    
+    @Override
+    public final ASTNode visitMatchOption(final MatchOptionContext ctx) {
+        if (null != ctx.shortestPathOption()) {
+            return visit(ctx.shortestPathOption());
+        }
+        return visit(ctx.simpleMatchOption());
+    }
+    
+    @Override
+    public final ASTNode visitSimpleMatchOption(final SimpleMatchOptionContext ctx) {
+        NodeContext firstNode = ctx.node(0);
+        NodeContext secondNode = ctx.node(1);
+        return new SimpleMatchOptionExpression(ctx.start.getStartIndex(), ctx.stop.getStopIndex(), ctx.getText(),
+                (NodeSegment) visit(firstNode), (NodeSegment) visit(secondNode), (EdgeExpression) visit(ctx.edge()));
+    }
+    
+    @Override
+    public final ASTNode visitShortestPathOption(final ShortestPathOptionContext ctx) {
+        NodeContext firstNode = ctx.node(0);
+        NodeContext secondNode = ctx.node(1);
+        return new ShortestPathOptionExpression(ctx.start.getStartIndex(), ctx.stop.getStopIndex(), ctx.getText(),
+                (NodeSegment) visit(firstNode), (NodeSegment) visit(secondNode), (EdgeExpression) visit(ctx.edge()));
+    }
+    
+    @Override
+    public final ASTNode visitNode(final NodeContext ctx) {
+        TableNameContext tableNameContext = ctx.tableName();
+        TableNameSegment tableName = new TableNameSegment(tableNameContext.start.getStartIndex(), tableNameContext.stop.getStopIndex(), (IdentifierValue) visit(tableNameContext.name()));
+        return new NodeSegment(ctx.start.getStartIndex(), ctx.stop.getStopIndex(), tableName);
+        
+    }
+    
+    @Override
+    public final ASTNode visitEdge(final EdgeContext ctx) {
+        TableNameContext tableNameContext = ctx.tableName();
+        TableNameSegment tableName = new TableNameSegment(tableNameContext.start.getStartIndex(), tableNameContext.stop.getStopIndex(), (IdentifierValue) visit(tableNameContext.name()));
+        EdgeDirection direction = null;
+        if (null != ctx.LEFT_ARROW_()) {
+            direction = EdgeDirection.LEFT;
+        }
+        if (null != ctx.RIGHT_ARROW_()) {
+            direction = EdgeDirection.RIGHT;
+        }
+        return new EdgeExpression(ctx.start.getStartIndex(), ctx.stop.getStopIndex(), ctx.getText(), direction, tableName);
     }
     
     private ASTNode createCompareSegment(final BooleanPrimaryContext ctx) {
@@ -691,11 +765,25 @@ public abstract class SQLServerStatementVisitor extends SQLServerStatementBaseVi
         if (null != ctx.approxFunction()) {
             return visit(ctx.approxFunction());
         }
+        if (null != ctx.graphPathAggregateFunction()) {
+            return visit(ctx.graphPathAggregateFunction());
+        }
         return new FunctionSegment(ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex(), ctx.getChild(0).getChild(0).getText(), getOriginalText(ctx));
     }
     
     @Override
     public final ASTNode visitApproxFunction(final ApproxFunctionContext ctx) {
+        FunctionSegment result = new FunctionSegment(ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex(), ctx.funcName.getText(), getOriginalText(ctx));
+        if (null != ctx.expr()) {
+            for (ExprContext each : ctx.expr()) {
+                result.getParameters().add((ExpressionSegment) visit(each));
+            }
+        }
+        return result;
+    }
+    
+    @Override
+    public final ASTNode visitGraphPathAggregateFunction(final GraphPathAggregateFunctionContext ctx) {
         FunctionSegment result = new FunctionSegment(ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex(), ctx.funcName.getText(), getOriginalText(ctx));
         if (null != ctx.expr()) {
             for (ExprContext each : ctx.expr()) {
